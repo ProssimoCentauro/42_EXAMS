@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <stdio.h>
 #include <stdarg.h>
 
 void	ft_putchar(char c, int *count)
@@ -9,6 +10,12 @@ void	ft_putchar(char c, int *count)
 
 void	ft_putstr(char *str, int *count)
 {
+	if (!str)
+	{
+		ft_putstr("(null)", count);
+		return ;
+	}
+
 	while (*str)
 	{
 		ft_putchar(*str, count);
@@ -22,6 +29,7 @@ void	ft_putnbr(int n, int *count)
 	{
 		write(1, "-2147483648", 11);
 		*count = *count + 11;
+		return ;
 	}
 	if (n < 0)
 	{
@@ -34,13 +42,17 @@ void	ft_putnbr(int n, int *count)
 	ft_putchar((n % 10) + '0', count);
 }
 
-void	print_hex(int num, int *count)
+void	print_hex(unsigned int n,  int *count)
 {
-	char *base = "0123456789abcdef";
+	unsigned int	rem;
 
-	if (num >= 16)
-		print_hex(num / 16, count);
-	ft_putchar(base[num % 16], count);
+	if (n / 16 != 0)
+		print_hex(n / 16, count);
+	rem = n % 16;
+	if (rem >= 10)
+		ft_putchar(rem + 87, count);
+	else
+		ft_putchar('0' + rem, count);
 }
 
 void	select_type(const char *s, va_list args, int *count)
@@ -72,11 +84,10 @@ int	ft_printf(const char *s, ... )
 	return (count);
 }
 
-int	main(int ac, char **av)
+int	main(void)
 {
-	(void)ac;
 	int	chars;
-	chars = ft_printf("Hello how are you? %s, %d, %x\n", "DON'T PANIC!!!", 90, 42);
+	chars = ft_printf("remember one simple thing... %s, %d, %x\n", "DON'T PANIC!!!", 42, -42);
 	ft_printf("chars: %d\n", chars);
 	return (0);
 }
