@@ -7,42 +7,44 @@
 #define BUFFER_SIZE 10
 #endif
 
-
-size_t	ft_strlen(char *str)
+size_t	ft_strlen(char *s)
 {
 	size_t	i;
 
-	if (!str)
-		return (0);
 	i = 0;
-	while (str[i])
+	while (s[i])
 		i++;
 	return (i);
 }
 
-int	ft_strchr(char *str, char c)
+int	ft_strchr(char *s, char c)
 {
-	if (!str)
+	if (!s)
 		return (0);
-	while (*str)
+	while (*s)
 	{
-		if (*str == c)
+		if (*s == c)
 			return (1);
-		str++;
+		s++;
 	}
 	return (0);
 }
 
 char	*ft_strjoin(char *s1, char *s2)
 {
-	size_t	len_s1 = ft_strlen(s1);
-	size_t	len_s2 = ft_strlen(s2);
 	char	*res;
+	size_t	s1_len = 0;
+	size_t	s2_len = 0;
 	size_t	i = 0;
+	size_t	j = 0;
 	
-	if (len_s1 == 0 && len_s2 == 0)
+	if (s1)
+		s1_len = ft_strlen(s1);
+	if (s2)
+		s2_len = ft_strlen(s2);
+	if (!s1_len && !s2_len)
 		return (NULL);
-	res = (char *)malloc(len_s1 + len_s2 + 1);
+	res = (char *)malloc(s1_len + s2_len + 1);
 	if (s1)
 	{
 		while (s1[i])
@@ -51,27 +53,31 @@ char	*ft_strjoin(char *s1, char *s2)
 			i++;
 		}
 	}
-	while (*s2 && s2 != NULL)
-        {
-                res[i] = *s2;
-                i++;
-                s2++;
-        }
-	if (s1)
-		free (s1);
+	if (s2)
+	{
+		while (s2[j])
+		{
+			res[i] = s2[j];
+			i++;
+			j++;
+		}
+	}
 	res[i] = '\0';
+	if (s1)
+		free(s1);
 	return (res);
 }
 
 char	*extract_line(char *buffer)
 {
-	size_t	i = 0;
-	size_t	j = 0;
-	char	*res;
+	char *res;
+	size_t	i;
 
-	while (buffer[j] != '\n')
-		j++;
-	res = (char *)malloc(j + 2);
+	i = 0;
+	while (buffer[i] != '\n')
+		i++;
+	res = (char *)malloc(i + 2);
+	i = 0;
 	while (buffer[i] != '\n')
 	{
 		res[i] = buffer[i];
@@ -90,7 +96,7 @@ void	fix_buffer(char *buffer)
 
 	i = 0;
 	j = 0;
-	while (buffer[i] && buffer[i] != '\n')
+	while (buffer[i] != '\n' && buffer[i])
 		i++;
 	i++;
 	while (buffer[i])
@@ -106,59 +112,52 @@ void	fix_buffer(char *buffer)
 	}
 }
 
-
 char	*get_next_line(int fd)
 {
-	static char buffer[BUFFER_SIZE + 1];
-	char *line = NULL;
-	int	readed_bytes;
-	char	*temp;
+	static	char	buffer[BUFFER_SIZE + 1];
+	char	*line = NULL;
+	char	*temp = NULL;
+	ssize_t	readed_bytes;
 
-	if (fd < 0 || BUFFER_SIZE <= 0)
+	if (fd < 0 && BUFFER_SIZE <= 0)
 		return (NULL);
 
 	buffer[BUFFER_SIZE] = '\0';
-	while (!ft_strchr(buffer, '\n'))
+	
+	while (!ft_strchr(temp, '\n'))
 	{
-		line = ft_strjoin(line, buffer);
+		temp = ft_strjoin(temp, buffer);
 		fix_buffer(buffer);
+		if (ft_strchr(temp, '\n'))
+			break;
 		readed_bytes = read(fd, buffer, BUFFER_SIZE);
-		if (readed_bytes == -1)
-		{
-			free(line);
-			return (NULL);
-		}
 		if (readed_bytes == 0)
 		{
-			if (line && line[0] == '\0')
-			{
-				free(line);
-				return (NULL);
-			}
-			return (line);
+			return (temp);
+		}
+		else if (readed_bytes == -1)
+		{
+			free(temp);
+			return (NULL);
 		}
 	}
-	temp = extract_line(buffer);
-	line = ft_strjoin(line, temp);
+	line = extract_line(temp);
 	free(temp);
-	fix_buffer(buffer);
 	return (line);
 }
 
 int	main()
 {
-	int	fd = open("test2", O_RDONLY);
-	char *str;
-	str = get_next_line(fd);
+	int	fd;
+	char	*s;
 
-
-	int	i = 3;
-	while (str)
+	fd = open("test2", O_RDONLY);
+	s = get_next_line(fd);
+	while (s)
 	{
-		printf("%s", str);
-		free(str);
-		str = get_next_line(fd);
-		i--; 
+		printf("%s", s);
+		free(s);
+		s = get_next_line(fd);
 	}
 	return (0);
 }
